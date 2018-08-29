@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Roteiros</title>
+    <script type="text/javascript" chatset="utf-8" src="cordova.js"></script>
+    <script type="text/javascript" src="js/index.js"></script>
+    <link rel="stylesheet" href="http://code.jquery.com/mobile/1.4.5/jquery.mobile-1.4.5.min.css" />
+    <script src="http://code.jquery.com/jquery-1.11.1.min.js"></script>
+    <script src="http://code.jquery.com/mobile/1.4.5/jquery.mobile-1.4.5.min.js"></script>    
+    
+    
+    
+<script>
+	
+	  document.addEventListener("deviceready",onDeviceReady,false);		  
+      function onDeviceReady()
+      {            
+        db = window.openDatabase("Database", "1.0", "BancoRoteiro", 1000000);
+        db.transaction(insereDado,erroDB,successoDB);
+
+        db.transaction(mostraRoteiro, erroQuery, sucessoQuery);     
+		
+		
+        db.transaction(insereDadoP,erroDB,successoDB);
+
+	 }
+
+      function insereDado(tx)
+      {
+        tx.executeSql('DROP TABLE IF EXISTS ROTEIRO');
+        tx.executeSql('CREATE TABLE IF NOT EXISTS ROTEIRO (id INTEGER PRIMARY KEY ASC, nome)');
+        tx.executeSql('INSERT INTO ROTEIRO (id, nome) VALUES (1, "Barra")');
+        tx.executeSql('INSERT INTO ROTEIRO (id, nome) VALUES (2, "Campo Grande")');
+        tx.executeSql('INSERT INTO ROTEIRO (id, nome) VALUES (3, "Inoã")');				
+      }  
+      function erroDB(errorDB)
+      {
+        alert("Não foi possível criar o database : " + error);
+      }
+      function successoDB()
+      {
+        //alert("Database criada");
+      } 
+	  
+
+
+      function insereDadoP(tx)
+      {
+       
+        	tx.executeSql('DROP TABLE IF EXISTS PESSOAL');
+        	tx.executeSql('CREATE TABLE IF NOT EXISTS PESSOAL (id  PRIMARY KEY , nome ,idroteiro)');
+        	tx.executeSql('INSERT INTO PESSOAL (id, nome,idroteiro) VALUES (1170, "RUBENS PASSOS",1)');
+        	tx.executeSql('INSERT INTO PESSOAL (id, nome,idroteiro) VALUES (6469, "CAROLINE MARTINS PORTO",2)');
+        	tx.executeSql('INSERT INTO PESSOAL (id, nome,idroteiro) VALUES (7164, "VANESSA BRANDÃO",3)');				
+     	    tx.executeSql('INSERT INTO PESSOAL (id, nome,idroteiro) VALUES (7117, "FRANCIALE MELO",NULL)');				
+		
+      }     
+
+	
+	
+	
+	
+		function carregaRoteiro(){
+			db = window.openDatabase("Database", "1.0", "BancoRoteiro", 1000000);
+			db.transaction(mostraRoteiro,erroQuery);	
+		//	alert('cheguei aqui');
+		}
+
+		 function mostraRoteiro(tx) {
+     		tx.executeSql('SELECT * FROM ROTEIRO', [], sucessoQuery, erroQuery);
+	      }
+		  
+		 function escondeRoteiro(tx) {
+			//document.getElementById('roteiros').innerHTML ="";
+		       document.getElementById("roteiros").style.display = 'none';
+			
+			
+	      }	
+
+
+		 function escondeLocalizacao(tx) {
+			//document.getElementById('localizacao').innerHTML ="";
+			
+		       document.getElementById("localizacao").style.display = 'none';
+
+	      }	
+
+
+
+		  		  		  		  
+		  function sucessoQuery(tx, results) {
+			 var len = results.rows.length;
+			 //alert("Tabela ROTEIRO2: " + len + " linhas");
+			 for (var i=0; i<len; i++){
+	//         alert("ID = " + results.rows.item(i).id + " Nome =  " + results.rows.item(i).nome);
+				
+	//			document.getElementById('roteiros').innerHTML += "<br>ID = " + results.rows.item(i).id + " Nome =  " + results.rows.item(i).nome;
+				document.getElementById('roteiros').innerHTML += "<br><button><a onclick='listaPessoal(" + results.rows.item(i).id + ")'>" + results.rows.item(i).nome + "</a></button><br>"				
+			 }
+		  }		  
+		  
+		
+		
+		  		  		  		  
+		  function sucessoQueryR(tx, results) {
+			 var len = results.rows.length;
+			 
+			 var nomeroteiro= results.rows.item(0).nome 
+			
+			 document.getElementById('nomeroteiro').innerHTML = "<br><b>Roteiro: </b>" + nomeroteiro + "</br>"
+			 
+			 
+		  }		  
+		
+		
+		
+		 function listaPessoal(id){
+			 document.getElementById("idroteiro").innerHTML = id
+			
+			 escondeRoteiro();
+			 escondeLocalizacao();
+			 db.transaction(mostraPessoal,erroQuery);	
+			 
+		 }
+		 
+
+	     function mostraPessoal(tx) {
+				
+				 var idroteiro =  document.getElementById("idroteiro").innerHTML
+
+   				 tx.executeSql("SELECT * FROM PESSOAL where ( idroteiro ISNULL or idroteiro = " + idroteiro  + ") ", [], sucessoQueryP, erroQuery);
+
+			     document.getElementById('pessoal').innerHTML = ""				
+
+
+	 			 tx.executeSql("SELECT * FROM ROTEIRO WHERE ID = " + idroteiro, [], sucessoQueryR, erroQuery);
+				 
+
+	      }
+			
+
+
+
+		 
+		  function sucessoQueryP(tx, results) {
+
+ 
+			
+			 var  html = ""
+			 html += "<table border=1>"
+			 html += "<tr><td>MATRICULA</td><td>NOME</td></tr>"
+
+			 var len = results.rows.length;
+			 for (var i=0; i<len; i++){
+			 	html += "<tr><td>" + results.rows.item(i).id + "</td><td>" + results.rows.item(i).nome + "</td></tr>"				
+			 }
+			
+			
+			 html += "</table>"
+	
+			 document.getElementById('pessoal').innerHTML += html	
+
+
+
+			 document.getElementById('pessoal').innerHTML += "<br><button><a onclick='CadastrarPessoal()'>Cadastrar Pessoal</a></button><br>"				
+			 document.getElementById('pessoal').innerHTML += "<br><button><a onclick='VoltaTelaPrincipal()'>Voltar</a></button><br>"				
+
+		  }		  
+
+
+
+		function CadastrarPessoal(){
+		
+	       		  
+		     habilitatela(6)	  
+	   		 desabilitatela(3) 
+			 
+			 
+			var  html = ""
+			html += "<b>Matricula:</b> <input  type=number id=matricula size=8  /><br>"
+			//<input type=button name=bt_semmat value='Nova'  onClick=UsuMat()><br>"
+			html += "<b>Nome:</b> <input type=text id=nomepessoal size=30  ><br>"
+			html += "<input type=button name=bt_cadastrar value=Cadastrar  onClick=OperaPessoal()><input type=button name=bt_Voltar value=Voltar  onClick=VoltarLPessoal()>"
+		    document.getElementById('cadastrarpessoal').innerHTML = html
+			 
+		}
+		 
+		
+		 
+		 function habilitatela(x){
+		 
+		    if(x==6)
+			{
+   		       document.getElementById("cadastrarpessoal").style.display = 'block';
+			}
+
+		    if(x==3)
+			{
+   		       document.getElementById("pessoal").style.display = 'block';
+			}
+				
+			
+			
+		 }
+		 
+		 function desabilitatela(x){
+
+		    if(x==3)
+			{
+   		       document.getElementById("pessoal").style.display = 'none';
+			}
+		 
+		 
+		    if(x==6)
+			{
+   		       document.getElementById("cadastrarpessoal").style.display = 'none';
+			}
+		 }
+		 
+		 
+		 function VoltaTelaPrincipal(){
+		   
+		       document.getElementById("roteiros").style.display = 'block';
+
+		       document.getElementById("localizacao").style.display = 'block';
+
+			   document.getElementById('nomeroteiro').innerHTML =""
+
+
+			   document.getElementById('pessoal').innerHTML =""
+			   
+		 }
+
+		  function erroQuery(err) {
+			alert("Erro ao executar SQL: "+err.code);
+		  }
+		  
+
+
+
+		  
+		  
+			var sucessoLocalizacao = function(position) {
+				alert('Latitude: '          + position.coords.latitude          + '\n' +
+					  'Longitude: '         + position.coords.longitude         + '\n' +
+					  'Altitude: '          + position.coords.altitude          + '\n' +
+					  'Accuracy: '          + position.coords.accuracy          + '\n' +
+					  'Altitude Accuracy: ' + position.coords.altitudeAccuracy  + '\n' +
+					  'Heading: '           + position.coords.heading           + '\n' +
+					  'Speed: '             + position.coords.speed             + '\n' +
+					  'Timestamp: '         + position.timestamp                + '\n');
+			};
+			
+			// onError Callback receives a PositionError object
+			//
+		  function erroLocalizacao(){
+			alert( 'code: ' +error.code + '\n' +
+					'message: ' + error.message + '\n');
+		  }	
+
+		  function localizacao(){
+			//alert('teste');
+		  //	navigator.geolocation.getCurrentPosition(sucessoLocalizacao,erroLocalizacao);			
+		  			navigator.geolocation.getCurrentPosition(sucessoLocalizacao, erroLocalizacao);	
+		  }
+		  
+		  
+		  function barcodescanner(){
+			  cordova.plugins.barcodeScanner.scan(
+			  	function(result) {
+					alert("Temos um codigo\n" +
+					"Resultado: " +result.text + "\n" +
+					"Formato: " +result.format + "\n" +					
+					"Cacelled: : " +result.cancelled);
+				},
+				function (error) {
+					alert("Falha para escanear: "+ error);
+				},
+				{
+					"preferFrontCamera": false,
+					"showFlipCameraButton":true,
+					"prompt": "Posicione no QR do Crachá",
+					"formats": "QR_CODE,PDF_417",
+					"orientation" : "portrait"
+				}
+				);
+		  }
+		  
+	
+		  
+	function UsuMat(){
+		document.getElementById('matricula').value  = "999"
+	}	  
+	function OperaPessoal(){
+
+		   if(document.getElementById('matricula').value ==""  && document.getElementById('nomepessoal').value ==""){
+		      alert("Matricula ou Nome deve ser informado.")
+			  return false;
+		   
+		   }
+		   
+	        db.transaction(insereDadoPessoal,erroDB,successoDB);
+
+	}
+	
+	
+
+      function insereDadoPessoal(tx)
+      {
+  
+		   var mat = ""
+		   var nomepess = ""
+		   var idroteiro =  document.getElementById("idroteiro").innerHTML
+
+		   if(document.getElementById('matricula').value ==""){
+		      mat = "999"
+			  nomepess = document.getElementById("nomepessoal").value
+			  tx.executeSql('INSERT INTO PESSOAL (id, nome,idroteiro) VALUES (' + mat +', "' + nomepess + '",' + idroteiro +')')			  
+		   }else{
+		      mat = document.getElementById('matricula').value
+			  tx.executeSql("SELECT * FROM PESSOAL WHERE id = " + mat, [], sucessoQueryAux, erroQuery);
+			  nomepess = document.getElementById("nomepessoal").value
+			  
+		   } 
+		   
+	 		   
+		    db.transaction(mostraPessoal,erroQuery);	
+			
+			
+		    habilitatela(3)   
+		    desabilitatela(6) 
+			
+      }  
+	
+	
+	
+		  function sucessoQueryAux(tx, results) {
+			 var nomepessoal = ""
+			 var len = results.rows.length;
+
+			 for (var i=0; i<len; i++){ 
+				  nomepessoal= results.rows.item(0).nome 
+			 }	 
+			  if(document.getElementById("nomepessoal").value=="")
+			  {
+				  document.getElementById("nomepessoal").value = nomepessoal
+			  }	  
+		  }		  
+	
+	 function VoltarLPessoal(){
+	 
+		    habilitatela(3)   
+		    desabilitatela(6) 
+	 
+	 }
+	
+			
+    </script>
+	
+</head>
+
+<body>
+
+<br>
+<!--<center><h1> <a onclick="carregaRoteiro();">Mostrar Roteiros</a> </h1></center>
+<center><h1> <a onclick="escondeRoteiro();">Esconder Roteiros</a> </h1></center>-->
+<div id="roteiros">
+<h1> Escolha o roteiro: </h1>
+</div>
+
+
+
+
+
+<div id="nomeroteiro" ></div> 
+
+<div id="cadastrarpessoal" style="display:none;"></div> 
+
+
+<div id="pessoal"></div>
+
+
+
+
+<div id="localizacao">
+<center><h1> <a onClick="localizacao();">Localização</a> </h1></center>
+<button onClick="barcodescanner()"> QR Code </button>
+</div>
+  
+  
+<div id="idroteiro" style="display:none;"></div> 
+
+  
+</body>
+
+</html>
